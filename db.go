@@ -36,7 +36,8 @@ var createOfferingTableSQL = `
 		UsagePrice                  INTEGER NOT NULL,
 		FixedPrice                  INTEGER NOT NULL,
 		Duration                    INTEGER NOT NULL,
-		Inserted                    DATETIME NOT NULL
+		Inserted                    DATETIME NOT NULL,
+		LastSeen                    DATETIME
 	);
 `
 
@@ -129,6 +130,13 @@ func (db *database) StoreOffering(offering *ec2.ReservedInstancesOffering) error
 	defer stmt.Close()
 
 	_, err = stmt.Exec(bind...)
+	if err != nil {
+		log.Printf("Exec failed with offering %v", offering)
+		return err
+	}
+
+	// update the LastSeen
+	_, err = db.Exec(`UPDATE offering SET LastSeen=CURRENT_TIMESTAMP WHERE Id=?`, offering.ReservedInstancesOfferingId)
 	if err != nil {
 		log.Printf("Exec failed with offering %v", offering)
 		return err
