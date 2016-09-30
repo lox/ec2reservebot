@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 
@@ -52,10 +53,15 @@ func pageInstanceOfferings(svc *ec2.EC2, f func(offering *ec2.ReservedInstancesO
 }
 
 func main() {
+	debugFlag := flag.Bool("debug", false, "Show debugging output")
+	flag.Parse()
+
 	config := aws.NewConfig()
-	// config = config.WithLogLevel(
-	// 	aws.LogDebugWithRequestRetries | aws.LogDebugWithRequestErrors | aws.LogDebugWithHTTPBody,
-	// )
+	if *debugFlag {
+		config = config.WithLogLevel(
+			aws.LogDebugWithRequestRetries | aws.LogDebugWithRequestErrors | aws.LogDebugWithHTTPBody,
+		)
+	}
 
 	sess, err := session.NewSession(config.WithRegion("us-east-1"))
 	if err != nil {

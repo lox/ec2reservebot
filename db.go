@@ -29,9 +29,9 @@ var createOfferingTableSQL = `
 		PricingDetails_Count5       INTEGER,
 		PricingDetails_Price5       INTEGER,
 		RecurringCharges_Amount1    INTEGER,
-		RecurringCharges_Hourly1    INTEGER,
+		RecurringCharges_Frequency1 INTEGER,
 		RecurringCharges_Amount2    INTEGER,
-		RecurringCharges_Hourly2    INTEGER,
+		RecurringCharges_Frequency2 INTEGER,
 		ProductDescription          TEXT NOT NULL,
 		UsagePrice                  INTEGER NOT NULL,
 		FixedPrice                  INTEGER NOT NULL,
@@ -97,6 +97,24 @@ func (db *database) StoreOffering(offering *ec2.ReservedInstancesOffering) error
 		offering.UsagePrice,
 		offering.FixedPrice,
 		offering.Duration,
+	}
+
+	for idx, detail := range offering.PricingDetails {
+		fields = append(fields, fmt.Sprintf("PricingDetails_Count%d", idx+1))
+		values = append(values, "?")
+		bind = append(bind, detail.Count)
+		fields = append(fields, fmt.Sprintf("PricingDetails_Price%d", idx+1))
+		values = append(values, "?")
+		bind = append(bind, detail.Price)
+	}
+
+	for idx, charge := range offering.RecurringCharges {
+		fields = append(fields, fmt.Sprintf("RecurringCharges_Amount%d", idx+1))
+		values = append(values, "?")
+		bind = append(bind, charge.Amount)
+		fields = append(fields, fmt.Sprintf("RecurringCharges_Frequency%d", idx+1))
+		values = append(values, "?")
+		bind = append(bind, charge.Frequency)
 	}
 
 	sql := fmt.Sprintf(`INSERT OR IGNORE INTO offering(%s) VALUES(%s)`,
